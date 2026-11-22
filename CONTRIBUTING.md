@@ -5,8 +5,8 @@ Short version: **one issue, one branch, one pull request. Never push to `main`.*
 ## First time setup (5 minutes)
 
 ```bash
-git clone https://github.com/<owner>/shortlist.git
-cd shortlist/backend
+git clone https://github.com/Warisha-Bilal7/Incubation-Application-Screener.git
+cd Incubation-Application-Screener/backend
 python -m venv .venv
 source .venv/bin/activate          # Windows PowerShell: .venv\Scripts\Activate.ps1
 pip install -r requirements.txt

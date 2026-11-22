@@ -6,7 +6,7 @@ One guide per person. Your list of issues is generated from the same source as `
 
 | Person | Role | GitHub username | Main area |
 |---|---|---|---|
-| Warisha | team lead, backend and AI | @TODO | Lead, backend, AI, deploy |
+| Warisha | team lead, backend and AI | @Warisha-Bilal7 | Lead, backend, AI, deploy |
 | Amir | frontend lead | @TODO | Frontend lead |
 | Aruba | frontend, documentation and QA | @TODO | Frontend, docs, QA |
 | Hafsa | slides, wording and accessibility | @TODO | Slides, wording, accessibility |
