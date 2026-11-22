@@ -80,11 +80,11 @@ More: [`docs/HOW-IT-WORKS.md`](docs/HOW-IT-WORKS.md) (plain language), [`PLANNER
 | Person | Role | GitHub |
 |---|---|---|
 | Warisha | Team lead, backend, AI | [@Warisha-Bilal7](https://github.com/Warisha-Bilal7) |
-| Amir | Frontend lead | TODO |
-| Aruba | Frontend, documentation | TODO |
-| Hafsa | Slides, wording, accessibility | TODO |
-| Aliyan | Backend, database | TODO |
-| Hammad | Backend features, tests, QA | TODO |
+| Amir | Frontend lead | [@Asim56791](https://github.com/Asim56791) |
+| Aruba | Frontend, documentation | [@arubajamil264-del](https://github.com/arubajamil264-del) |
+| Hafsa | Slides, wording, accessibility | [@shahhafsa698-arch](https://github.com/shahhafsa698-arch) |
+| Aliyan | Backend, database | [@Aliyan4848](https://github.com/Aliyan4848) |
+| Hammad | Backend features, tests, QA | [@Hamdan7Khan](https://github.com/Hamdan7Khan) |
 
 ## Licence
 

@@ -7,11 +7,11 @@ One guide per person. Your list of issues is generated from the same source as `
 | Person | Role | GitHub username | Main area |
 |---|---|---|---|
 | Warisha | team lead, backend and AI | @Warisha-Bilal7 | Lead, backend, AI, deploy |
-| Amir | frontend lead | @TODO | Frontend lead |
-| Aruba | frontend, documentation and QA | @TODO | Frontend, docs, QA |
-| Hafsa | slides, wording and accessibility | @TODO | Slides, wording, accessibility |
-| Aliyan | backend, database and AI testing | @TODO | Backend, database, auth, AI testing |
-| Hammad | backend features, tests, QA and demo video | @TODO | Backend features, tests, QA, demo video |
+| Amir | frontend lead | @Asim56791 | Frontend lead |
+| Aruba | frontend, documentation and QA | @arubajamil264-del | Frontend, docs, QA |
+| Hafsa | slides, wording and accessibility | @shahhafsa698-arch | Slides, wording, accessibility |
+| Aliyan | backend, database and AI testing | @Aliyan4848 | Backend, database, auth, AI testing |
+| Hammad | backend features, tests, QA and demo video | @Hamdan7Khan | Backend features, tests, QA, demo video |
 
 ## Who asks whom
 
