@@ -1,0 +1,46 @@
+# Render blueprint: one web service that serves the API and the frontend.
+# Render dashboard > New > Blueprint > pick this repo.
+# Secrets (marked sync: false) are typed into the Render dashboard, never committed.
+services:
+  - type: web
+    name: shortlist
+    runtime: python
+    plan: free
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      # Tonight: mock + file store. For the demo change to gemini + supabase (see DEPLOYMENT-CHECKLIST.md).
+      - key: AI_MODE
+        value: mock
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-flash-latest
+      - key: STORE_BACKEND
+        value: file
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: AUTH_MODE
+        value: key
+      - key: REVIEWER_KEY
+        generateValue: true
+      - key: REVIEWER_EMAILS
+        sync: false
+      - key: CORS_ORIGINS
+        value: "*"
+      - key: RATE_LIMIT_PER_HOUR
+        value: "300"
+      - key: ENABLE_DEV_ROUTES
+        value: "true"
+      - key: MAX_DECK_MB
+        value: "10"
+      - key: ASSUMED_MANUAL_MINUTES
+        value: "15"
+      - key: ASSUMED_CARD_MINUTES
+        value: "3"

@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Application · Shortlist</title>
+  <link rel="stylesheet" href="css/base.css">
+</head>
+<body>
+  <header class="site">
+    <a class="brand" href="index.html">Shortlist</a>
+    <a href="dashboard.html">← All applications</a>
+    <span id="mode"></span>
+  </header>
+  <main>
+    <div id="error" class="error" hidden></div>
+    <div id="view"></div>
+    <!-- TODO (Amir/Aruba): radar or bar chart of criteria, previous/next application buttons, print view -->
+  </main>
+
+  <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/ui.js"></script>
+  <script>
+    const { $, esc, priorityBadge, statusLabel, withAuth, showError } = ui;
+    const params = new URLSearchParams(location.search);
+    const id = params.get("id");
+    const blind = params.get("blind") === "1";
+    let timer;
+
+    const list = (arr) => (arr && arr.length ? `<ul class="tight">${arr.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>` : '<span class="muted">None</span>');
+
+    function criteriaRows(ev) {
+      return ev.criteria.map((c) => {
+        const verify = c.evidence_quote
+          ? (c.evidence_verified === true ? '<span class="verify-ok">✓ quote found in application</span>'
+             : '<span class="verify-bad">⚠ quote NOT found in application</span>')
+          : "";
+        const quote = c.evidence_quote ? `<div class="quote ${c.evidence_verified === false ? "unverified" : ""}">“${esc(c.evidence_quote)}” ${verify}</div>` : "";
+        return `<tr>
+          <td><b>${esc(c.name)}</b><div class="muted">weight ${esc(c.weight)}</div></td>
+          <td style="min-width:120px"><span class="score">${esc(c.score)}/5</span><div class="bar"><span style="width:${c.score * 20}%"></span></div></td>
+          <td>${esc(c.reasoning)}${quote}</td></tr>`;
+      }).join("");
+    }
+
+    function render(a) {
+      const i = a.input, ev = a.evaluation;
+      $("#mode").innerHTML = a.ai_mode === "mock" ? '<span class="badge badge-mock">MOCK AI</span>' : "";
+      let html = `<h1>${esc(i.startup_name)}</h1><p class="muted">${esc(i.one_liner)}</p>
+        <p class="muted">${esc(i.sector)} · ${esc(i.stage)} · Applicant: ${esc(i.founder_name)}</p>`;
+
+      if (a.status !== "done") {
+        html += `<div class="card">${esc(statusLabel[a.status] || a.status)}${a.error ? " — " + esc(a.error) : ""}
+          ${a.status === "failed" ? '<div style="margin-top:8px"><button id="retry">Retry analysis</button></div>' : ""}</div>`;
+      }
+      if (ev) {
+        html += `<div class="card row">
+            <div><div class="muted">AI review score</div><div class="score" style="font-size:2rem">${esc(Math.round(ev.overall_score))}<span class="muted" style="font-size:1rem">/100</span></div></div>
+            <div>${priorityBadge(ev.priority)}<div class="muted">Confidence: ${esc(ev.confidence)} · Completeness: ${esc(Math.round(ev.completeness))}%</div></div>
+          </div>`;
+        if (ev.injection_detected) html += `<div class="error">Instruction-like text was found in this application and ignored by the AI. Review it manually.</div>`;
+        if (ev.warnings.length) html += `<div class="error">${ev.warnings.map(esc).join("<br>")}</div>`;
+        html += `<h2>Summary</h2><p>${esc(ev.summary)}</p>
+          <h2>Scorecard</h2><div class="table-wrap"><table><thead><tr><th>Criterion</th><th>Score</th><th>Reasoning and evidence</th></tr></thead><tbody>${criteriaRows(ev)}</tbody></table></div>
+          <div class="grid grid-2">
+            <div class="card"><h2 style="margin-top:0">Strengths</h2>${list(ev.strengths)}</div>
+            <div class="card"><h2 style="margin-top:0">Risks</h2>${list(ev.risks)}</div>
+            <div class="card"><h2 style="margin-top:0">Riskiest assumptions</h2>${list(ev.riskiest_assumptions)}</div>
+            <div class="card"><h2 style="margin-top:0">Suggested interview questions</h2>${list(ev.interview_questions)}</div>
+            <div class="card"><h2 style="margin-top:0">Red flags</h2>${list(ev.red_flags)}</div>
+            <div class="card"><h2 style="margin-top:0">Missing information</h2>${list(ev.missing_info)}</div>
+          </div>`;
+      }
+      html += `<h2>Application</h2><div class="card">${["problem","solution","target_customers","traction","business_model","team_background","ask"].map(
+        (f) => i[f] ? `<p><b>${esc(f.replace(/_/g, " "))}</b><br>${esc(i[f])}</p>` : "").join("")}
+        ${a.has_deck ? '<button id="deck">Open pitch deck (PDF)</button>' : '<span class="muted">No deck attached.</span>'}</div>`;
+
+      const d = a.decision;
+      html += `<h2>Reviewer decision</h2><div class="card">
+        ${d ? `<p>Current: <b>${esc(d.decision)}</b> by ${esc(d.reviewer)}${d.note ? " — " + esc(d.note) : ""}</p>` : ""}
+        <div class="row">
+          <select id="decision"><option value="shortlist">Shortlist</option><option value="interview">Interview</option><option value="hold">Hold</option><option value="decline">Decline</option></select>
+          <input id="note" placeholder="Note (optional)" style="flex:1;min-width:200px" maxlength="2000">
+          <input id="reviewer" placeholder="Your name" style="max-width:180px" maxlength="120">
+          <button id="save" class="primary">Save decision</button>
+        </div></div>`;
+
+      $("#view").innerHTML = html;
+      if (d) { $("#decision").value = d.decision; }
+      const deckBtn = $("#deck");
+      if (deckBtn) deckBtn.onclick = () => withAuth(() => api.openDeck(a.id)).catch((e) => showError($("#error"), e));
+      const retry = $("#retry");
+      if (retry) retry.onclick = async () => { await withAuth(() => api.reanalyze(a.id)); load(); };
+      $("#save").onclick = async () => {
+        try {
+          await withAuth(() => api.decide(a.id, { decision: $("#decision").value, note: $("#note").value, reviewer: $("#reviewer").value }));
+          load();
+        } catch (e) { showError($("#error"), e); }
+      };
+    }
+
+    async function load() {
+      if (!id) return showError($("#error"), new Error("No application id in the URL."));
+      $("#error").hidden = true;
+      try {
+        const a = await withAuth(() => api.get(id, blind));
+        render(a);
+        clearTimeout(timer);
+        if (a.status === "pending" || a.status === "analyzing") timer = setTimeout(load, 2500);
+      } catch (e) { showError($("#error"), e); }
+    }
+    load();
+  </script>
+</body>
+</html>

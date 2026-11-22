@@ -1,0 +1,14 @@
+# secrets and local data: never commit
+.env
+*.env
+!.env.example
+backend/data/runtime/
+scripts/team.env
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+node_modules/
+.DS_Store
+*.log

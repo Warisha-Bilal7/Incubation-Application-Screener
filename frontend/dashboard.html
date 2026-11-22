@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard · Shortlist</title>
+  <link rel="stylesheet" href="css/base.css">
+</head>
+<body>
+  <header class="site">
+    <a class="brand" href="index.html">Shortlist</a>
+    <a href="apply.html">Apply</a>
+    <a href="dashboard.html">Reviewer dashboard</a>
+    <span id="mode"></span>
+  </header>
+  <main>
+    <h1>Applications</h1>
+    <p class="muted">Ranked by AI review score. The score decides reading order only; a reviewer decides every outcome.</p>
+
+    <div id="error" class="error" hidden></div>
+    <div id="stats" class="stats"></div>
+
+    <div class="row card" style="margin-bottom:12px">
+      <input id="q" type="search" placeholder="Search startup or sector" style="min-width:200px">
+      <select id="priority">
+        <option value="">All priorities</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option>
+      </select>
+      <select id="sort">
+        <option value="score">Highest score</option><option value="newest">Newest</option><option value="name">Name A–Z</option>
+      </select>
+      <label style="margin:0;font-weight:500"><input id="blind" type="checkbox" style="width:auto"> Blind review (hide applicant identity)</label>
+      <button id="csv">Export CSV</button>
+      <button id="seed" title="Loads 12 demo applicants (development only)">Load demo data</button>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Startup</th><th>Founder</th><th>Score</th><th>Priority</th><th>Confidence</th><th>Flags</th><th>Decision</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+    <p id="empty" class="muted" hidden>No applications yet. Submit one from the Apply page, or load the demo data.</p>
+    <!-- TODO (Amir): score bars, sticky header, empty/loading skeletons, mobile card layout, charts for the stats strip -->
+  </main>
+
+  <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/ui.js"></script>
+  <script>
+    const { $, esc, priorityBadge, statusLabel, withAuth, showError } = ui;
+    let timer;
+
+    async function load() {
+      $("#error").hidden = true;
+      const params = { sort: $("#sort").value, blind: $("#blind").checked };
+      if ($("#priority").value) params.priority = $("#priority").value;
+      if ($("#q").value.trim()) params.q = $("#q").value.trim();
+      try {
+        const data = await withAuth(() => api.list(params));
+        renderRows(data.items);
+        loadStats();
+        const busy = data.items.some((i) => i.status === "pending" || i.status === "analyzing");
+        clearTimeout(timer);
+        if (busy) timer = setTimeout(load, 2500);   // keep polling while the AI is working
+      } catch (e) { showError($("#error"), e); }
+    }
+
+    function renderRows(items) {
+      $("#empty").hidden = items.length > 0;
+      const blind = $("#blind").checked ? "&blind=1" : "";
+      $("#rows").innerHTML = items.map((i) => {
+        const ready = i.status === "done";
+        return `<tr>
+          <td><a href="application.html?id=${encodeURIComponent(i.id)}${blind}"><b>${esc(i.startup_name)}</b></a>
+              <div class="muted">${esc(i.one_liner)}</div></td>
+          <td>${esc(i.founder_name)}</td>
+          <td class="score">${ready ? esc(Math.round(i.overall_score)) : "–"}</td>
+          <td>${ready ? priorityBadge(i.priority) : esc(statusLabel[i.status] || i.status)}</td>
+          <td>${ready ? esc(i.confidence) : ""}</td>
+          <td>${i.red_flag_count ? "⚑ " + esc(i.red_flag_count) : ""}${i.unverified_quotes ? " ⚠ " + esc(i.unverified_quotes) : ""}</td>
+          <td>${i.decision ? esc(i.decision) : '<span class="muted">undecided</span>'}</td>
+        </tr>`;
+      }).join("");
+    }
+
+    async function loadStats() {
+      try {
+        const s = await api.stats();
+        $("#stats").innerHTML = `
+          <div class="card stat"><b>${esc(s.total)}</b><span class="muted">applications</span></div>
+          <div class="card stat"><b>${esc(s.by_priority.high || 0)}</b><span class="muted">high priority</span></div>
+          <div class="card stat"><b>${s.avg_analysis_seconds == null ? "–" : esc(s.avg_analysis_seconds) + " s"}</b><span class="muted">avg AI analysis</span></div>
+          <div class="card stat"><b>~${esc(s.estimated_minutes_saved)} min</b><span class="muted">reading time saved (assumed ${esc(s.assumed_manual_review_minutes)} → ${esc(s.assumed_card_review_minutes)} min each)</span></div>`;
+        $("#mode").innerHTML = s.ai_mode === "mock" ? '<span class="badge badge-mock">MOCK AI: not real analysis</span>' : "";
+      } catch (e) { /* stats are optional */ }
+    }
+
+    ["#priority", "#sort", "#blind"].forEach((s) => $(s).addEventListener("change", load));
+    $("#q").addEventListener("input", () => { clearTimeout(window._qt); window._qt = setTimeout(load, 250); });
+    $("#csv").addEventListener("click", () => withAuth(() => api.downloadCsv($("#blind").checked)).catch((e) => showError($("#error"), e)));
+    $("#seed").addEventListener("click", async () => {
+      try { await withAuth(() => api.seed(false)); load(); } catch (e) { showError($("#error"), e); }
+    });
+    load();
+  </script>
+</body>
+</html>

@@ -1,0 +1,90 @@
+{
+  "version": 1,
+  "name": "Default incubator rubric (editable; replace with the program's real criteria)",
+  "criteria": [
+    {
+      "key": "problem",
+      "name": "Problem & customer pain",
+      "weight": 20,
+      "description": "Is there a specific, real problem for an identifiable group of people?",
+      "anchors": {
+        "1": "No clear problem, or a generic statement with no affected group.",
+        "3": "A real problem is named and a group is implied, but evidence of the pain is thin.",
+        "5": "A specific problem, a clearly defined group, and concrete evidence of the pain (interviews, numbers, observations)."
+      },
+      "hint_fields": ["problem"]
+    },
+    {
+      "key": "solution",
+      "name": "Solution & differentiation",
+      "weight": 15,
+      "description": "Does the solution fit the problem, and is it meaningfully different from what exists?",
+      "anchors": {
+        "1": "Solution is vague, unrelated to the problem, or buzzwords only.",
+        "3": "Solution fits the problem but looks similar to existing options.",
+        "5": "Clear solution with a specific reason it beats existing alternatives."
+      },
+      "hint_fields": ["solution"]
+    },
+    {
+      "key": "market",
+      "name": "Market & target customers",
+      "weight": 15,
+      "description": "Who pays, how many are there, and can they be reached?",
+      "anchors": {
+        "1": "No target customer identified.",
+        "3": "Target customers named, with a rough sense of size or reach.",
+        "5": "Specific paying segment, a reasoned size estimate, and a believable way to reach them."
+      },
+      "hint_fields": ["target_customers", "problem"]
+    },
+    {
+      "key": "traction",
+      "name": "Traction & validation",
+      "weight": 15,
+      "description": "Evidence that real people want this: pilots, users, revenue, letters of intent, interviews.",
+      "anchors": {
+        "1": "No evidence beyond the founders' belief.",
+        "3": "Some validation: interviews, a prototype tested with a few users, or waitlist.",
+        "5": "Paying customers, signed pilots, or strong repeat usage, with numbers."
+      },
+      "hint_fields": ["traction"]
+    },
+    {
+      "key": "business_model",
+      "name": "Business model",
+      "weight": 10,
+      "description": "A believable way to earn money that matches who the customer is.",
+      "anchors": {
+        "1": "No revenue model, or 'we will figure it out'.",
+        "3": "A revenue model is stated but pricing or unit economics are not reasoned.",
+        "5": "Clear who pays, how much, and why the numbers can work."
+      },
+      "hint_fields": ["business_model"]
+    },
+    {
+      "key": "team",
+      "name": "Team & founder-market fit",
+      "weight": 15,
+      "description": "Does the team have the skills and context to execute this specific idea?",
+      "anchors": {
+        "1": "No information about the team, or no relevant skills.",
+        "3": "Relevant skills for part of the work; gaps not addressed.",
+        "5": "Complementary skills, direct experience of the problem, and a track record of shipping."
+      },
+      "hint_fields": ["team_background"]
+    },
+    {
+      "key": "feasibility",
+      "name": "Feasibility & execution plan",
+      "weight": 10,
+      "description": "Can this be built and launched with the resources and time they describe?",
+      "anchors": {
+        "1": "No plan, or the plan is clearly unrealistic.",
+        "3": "A plausible plan with some unrealistic or missing steps.",
+        "5": "Concrete milestones, realistic scope, and the ask matches what the program can give."
+      },
+      "hint_fields": ["solution", "ask", "stage"]
+    }
+  ]
+}

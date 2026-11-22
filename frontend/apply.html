@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Apply · Shortlist</title>
+  <link rel="stylesheet" href="css/base.css">
+</head>
+<body>
+  <header class="site">
+    <a class="brand" href="index.html">Shortlist</a>
+    <a href="apply.html">Apply</a>
+    <a href="dashboard.html">Reviewer dashboard</a>
+  </header>
+  <main>
+    <h1>Startup application</h1>
+    <p class="muted">Your name and email are hidden from the AI. Only the startup details and your deck are analysed, and a person makes the final decision.</p>
+
+    <div id="error" class="error" hidden></div>
+    <div id="done" class="ok" hidden>
+      Application received. Reference: <b id="ref"></b>. The reviewers will take it from here.
+      <div style="margin-top:8px"><a href="apply.html">Submit another</a></div>
+    </div>
+
+    <form id="form" class="card" novalidate>
+      <h2 style="margin-top:0">The startup</h2>
+      <label for="startup_name">Startup name</label>
+      <input id="startup_name" name="startup_name" required maxlength="120">
+
+      <label for="one_liner">One-line description</label>
+      <input id="one_liner" name="one_liner" required maxlength="300">
+
+      <div class="grid grid-2">
+        <div><label for="sector">Sector</label><input id="sector" name="sector" maxlength="80" placeholder="Healthtech, Agritech…"></div>
+        <div><label for="stage">Stage</label>
+          <select id="stage" name="stage">
+            <option value="idea">Idea</option><option value="prototype">Prototype</option>
+            <option value="mvp">MVP</option><option value="launched">Launched</option><option value="revenue">Earning revenue</option>
+          </select></div>
+      </div>
+
+      <label for="problem">Problem <span class="hint">Who has it, and how do you know it is real?</span></label>
+      <textarea id="problem" name="problem" required maxlength="4000"></textarea>
+      <label for="solution">Solution</label>
+      <textarea id="solution" name="solution" required maxlength="4000"></textarea>
+      <label for="target_customers">Target customers <span class="hint">Who pays, and how many are there?</span></label>
+      <textarea id="target_customers" name="target_customers" maxlength="3000"></textarea>
+      <label for="traction">Traction <span class="hint">Users, pilots, revenue, interviews. Numbers help.</span></label>
+      <textarea id="traction" name="traction" maxlength="3000"></textarea>
+      <label for="business_model">Business model</label>
+      <textarea id="business_model" name="business_model" maxlength="3000"></textarea>
+      <label for="team_background">Team</label>
+      <textarea id="team_background" name="team_background" maxlength="3000"></textarea>
+      <label for="ask">What do you need from the programme?</label>
+      <textarea id="ask" name="ask" maxlength="2000"></textarea>
+
+      <label for="deck">Pitch deck <span class="hint">PDF, optional, up to 10 MB</span></label>
+      <input id="deck" name="deck" type="file" accept="application/pdf">
+
+      <h2>About you <span class="muted" style="font-weight:400">(hidden from the AI)</span></h2>
+      <div class="grid grid-2">
+        <div><label for="founder_name">Your name</label><input id="founder_name" name="founder_name" required maxlength="120"></div>
+        <div><label for="founder_email">Email</label><input id="founder_email" name="founder_email" type="email" required maxlength="200"></div>
+      </div>
+      <label for="organization">University or organisation <span class="hint">optional</span></label>
+      <input id="organization" name="organization" maxlength="160">
+
+      <div class="row" style="margin-top:20px">
+        <button id="submit" class="primary" type="submit">Submit application</button>
+        <button id="fill" type="button" hidden>Fill example (demo)</button>
+      </div>
+      <!-- TODO (Aruba/Hafsa): inline field validation messages, character counters, loading state polish -->
+    </form>
+  </main>
+
+  <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/ui.js"></script>
+  <script>
+    const { $, showError } = ui;
+    const FIELDS = ["startup_name","one_liner","sector","stage","problem","solution","target_customers",
+                    "traction","business_model","team_background","ask","founder_name","founder_email","organization"];
+
+    // Demo helper: open apply.html?demo=1 to show a "Fill example" button (for live demos, so nobody types on stage).
+    if (new URLSearchParams(location.search).get("demo") === "1") {
+      $("#fill").hidden = false;
+      $("#fill").addEventListener("click", () => {
+        const sample = {
+          startup_name: "ClinicPing", one_liner: "SMS reminders that cut missed appointments at small clinics.",
+          sector: "Healthtech", stage: "mvp",
+          problem: "Small clinics lose about a third of booked appointments to no-shows, and receptionists phone patients by hand every evening.",
+          solution: "An SMS reminder tool where patients confirm or reschedule with one reply, with a simple page for the receptionist.",
+          target_customers: "Independent clinics in Peshawar with one to three doctors.",
+          traction: "Three clinics piloted for eight weeks and no-shows fell from 30 percent to 18 percent in their own booking logs.",
+          business_model: "Clinics pay PKR 3,000 per month per doctor.",
+          team_background: "A developer and a former clinic manager who ran scheduling for four years.",
+          ask: "Mentorship on selling to clinics and an introduction to a clinic network.",
+          founder_name: "Demo Founder", founder_email: "demo@example.com", organization: "",
+        };
+        FIELDS.forEach((f) => { if (sample[f] !== undefined) $("#" + f).value = sample[f]; });
+      });
+    }
+
+    $("#form").addEventListener("submit", async (ev) => {
+      ev.preventDefault();
+      $("#error").hidden = true;
+      const payload = {};
+      FIELDS.forEach((f) => (payload[f] = $("#" + f).value.trim()));
+      const file = $("#deck").files[0] || null;
+      if (file && file.size > 10 * 1024 * 1024) return showError($("#error"), new Error("The deck is larger than 10 MB."));
+
+      const btn = $("#submit");
+      btn.disabled = true; btn.textContent = "Submitting…";
+      try {
+        const res = await api.submit(payload, file);
+        $("#ref").textContent = res.id;
+        $("#form").hidden = true;
+        $("#done").hidden = false;
+        window.scrollTo(0, 0);
+      } catch (e) {
+        // 422 detail is a JSON list of {loc, msg}; show it readably
+        let msg = e.message;
+        try { const d = JSON.parse(msg); if (Array.isArray(d)) msg = d.map((x) => (x.loc || []).slice(-1)[0] + ": " + x.msg).join("\n"); } catch (_) {}
+        showError($("#error"), new Error(msg));
+        $("#error").style.whiteSpace = "pre-line";
+      } finally {
+        btn.disabled = false; btn.textContent = "Submit application";
+      }
+    });
+  </script>
+</body>
+</html>
